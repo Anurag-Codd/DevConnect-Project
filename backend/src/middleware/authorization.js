@@ -4,7 +4,7 @@ const authMiddlware = async (req, res, next) => {
   const header = req.headers.authorization;
 
   if (!header || !header.startsWith("Bearer ")) {
-    return res.staus(401).send("unauthorized user");
+    return res.staus(401).send("unauthorized access");
   }
 
   const token = header.split("Bearer ")[1];

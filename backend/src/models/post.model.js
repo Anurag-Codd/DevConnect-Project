@@ -10,16 +10,16 @@ const postSchema = new Schema(
     },
     imagesUrl: {
       type: [String],
+      maxlength: 4,
     },
     likes: [
       {
         user: { type: String, ref: "User" },
       },
     ],
-    comments: [
+    dislikes: [
       {
         user: { type: String, ref: "User" },
-        text: { type: String, required: true },
       },
     ],
     user: {
