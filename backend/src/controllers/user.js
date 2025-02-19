@@ -55,48 +55,125 @@ export const login = async (req, res) => {
   }
 };
 
-
 export const updateProfile = async (req, res) => {
-  const { name, skills, bio } = JSON.parse(req.body.userData);
-  const avatar = req.file;
-  const userId = req.id;
+  try {
+    const { name, skills, bio, social, experience, education } = JSON.parse(
+      req.body.userData
+    );
+    const avatar = req.file;
+    const userId = req.id;
 
-  if (!name || !skills || !bio || !avatar) {
-    return res.status(400).json({ message: "Missing required fields." });
+    if (!name || !skills?.length || !bio || !social || !experience?.length || !education?.length) {
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    let avatarUrl = user.avatar;
+    if (avatar) {
+      if (user.avatar) {
+        await destroyer(user.avatar.split("/").pop().split(".")[0]);
+      }
+      const uploadResult = await uploader(avatar);
+      avatarUrl = uploadResult.secure_url;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name, skills, bio, social, experience, education, avatar: avatarUrl },
+      { new: true }
+    ).select("-password");
+
+    return res
+      .status(200)
+      .json({ message: "Profile updated successfully.", updatedUser });
+  } catch (error) {
+    console.error("Update Profile Error:", error.message);
+    return res.status(500).json({ message: "Internal server issue." });
   }
+};
+
+export const sendConnectionRequest = async (req, res) => {
+  const userId = req.id;
+  const { receiverId } = req.body;
 
   try {
     const user = await User.findById(userId);
-    if (!user) {
-      return res.status(400).json({ message: "User not found." });
+    const receiver = await User.findById(receiverId);
+
+    if (!user || !receiver) {
+      return res.status(404).json({ message: "User not found." });
     }
 
-    const profileData = {
-      name,
-      skills,
-      bio,
-    };
+    const userConnection = user.connections.find(
+      (conn) =>
+        conn.user === receiverId &&
+        (conn.status === "pending" || conn.status === "accepted")
+    );
 
-    if (avatar) {
-      if (user.avatar) {
-        const publicId = user.avatar.split("/").pop().split(".")[0];
-        await destroyer(publicId);
-      }
+    const receiverConnection = receiver.connections.find(
+      (conn) =>
+        conn.user === userId &&
+        (conn.status === "requested" || conn.status === "accepted")
+    );
 
-      const cloudUpload = await uploader(avatar);
-      profileData.avatar = cloudUpload.secure_url;
+    if (userConnection || receiverConnection) {
+      return res
+        .status(400)
+        .json({ message: "Connection request already exists." });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, profileData, {
-      new: true,
-    });
+    user.connections.push({ user: receiverId, status: "pending" });
+    receiver.connections.push({ user: userId, status: "requested" });
 
-    return res.status(200).json({
-      message: "User profile updated successfully.",
-      updatedUser,
-    });
+    await user.save();
+    await receiver.save();
+
+    return res.status(200).json({ message: "Connection request sent." });
   } catch (error) {
-    console.error("Update Profile Error:", error.message);
+    console.error("Send Connection Request Error:", error);
+    return res.status(500).json({ message: "Internal server issue." });
+  }
+};
+
+export const acceptConnectionRequest = async (req, res) => {
+  const userId = req.id;
+  const { senderId } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    const sender = await User.findById(senderId);
+
+    if (!user || !sender) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const userConnection = user.connections.find(
+      (conn) => conn.user === senderId && conn.status === "requested"
+    );
+
+    const senderConnection = sender.connections.find(
+      (conn) => conn.user === userId && conn.status === "pending"
+    );
+
+    if (!userConnection || !senderConnection) {
+      return res
+        .status(400)
+        .json({ message: "No pending connection request found." });
+    }
+
+    userConnection.status = "accepted";
+    senderConnection.status = "accepted";
+
+    await user.save();
+    await sender.save();
+
+    return res
+      .status(200)
+      .json({ message: "Connection request accepted successfully." });
+  } catch (error) {
+    console.error("Accept Connection Request Error:", error);
     return res.status(500).json({ message: "Internal server issue." });
   }
 };

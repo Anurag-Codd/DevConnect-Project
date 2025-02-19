@@ -7,30 +7,74 @@ const userSchema = new Schema(
     _id: {
       type: String,
       required: true,
-      unique: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    username: {
-      type,
-      required: true,
-      unique: true,
-      minLength: 5,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
     },
     avatar: {
       type: String,
       default:
         "https://res.cloudinary.com/ds8nimjln/image/upload/v1738935852/User_drezqk.png",
     },
-    skills: { type: [String] },
+    name: {
+      type: String,
+      required: true,
+    },
+    username: {
+      type: String,
+      minLength: 5,
+      unique: true,
+      required: true,
+      lowercase: true,
+    },
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+      lowercase: true,
+    },
+    skills: { type: [String], default: [] },
     bio: { type: String },
+    social: {
+      linkedin: { type: String, match: [/^https?:\/\//, "Invalid URL"] },
+      github: { type: String, match: [/^https?:\/\//, "Invalid URL"] },
+      twitter: { type: String, match: [/^https?:\/\//, "Invalid URL"] },
+      portfolio: { type: String, match: [/^https?:\/\//, "Invalid URL"] },
+      youtube: { type: String, match: [/^https?:\/\//, "Invalid URL"] },
+    },
+    experience: [
+      {
+        title: { type: String, required: true },
+        company: { type: String },
+        from: { type: Date, required: true },
+        to: { type: Date },
+        current: { type: Boolean, default: false },
+        description: { type: String },
+      },
+    ],
+    projects: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Project", default: [] },
+    ],
+    education: [
+      {
+        school: { type: String, required: true },
+        degree: { type: String, required: true },
+        fieldOfStudy: { type: String, required: true },
+        from: { type: Date, required: true },
+        to: { type: Date },
+        current: { type: Boolean, default: false },
+        description: { type: String },
+      },
+    ],
+    connections: [
+      {
+        user: { type: String, ref: "User", required: true },
+        status: {
+          type: String,
+          enum: ["pending", "accepted","requested"],
+          default: "pending",
+        },
+        sentAt: { type: Date, default: Date.now },
+        respondedAt: { type: Date },
+      },
+    ],
   },
   { timestamps: true }
 );

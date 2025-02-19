@@ -1,10 +1,11 @@
 import sanitizeHtml from "sanitize-html";
 import Post from "../models/post.model.js";
-import { uploader } from "../config/cloudinaryConfig.js";
+import { destroyer, uploader } from "../config/cloudinaryConfig.js";
+import Comment from "../models/comment.model.js";
 
 export const createPost = async (req, res) => {
   const userId = req.id;
-  const { text } = req.body;
+  const { text, postType } = req.body;
   const postFiles = req.files;
 
   if (!text) {
@@ -30,6 +31,7 @@ export const createPost = async (req, res) => {
 
   try {
     const newPost = {
+      postType,
       text: sanitizedText,
       imagesUrl: uploadedFiles.map((file) => file.secure_url),
       user: userId,
@@ -203,5 +205,53 @@ export const postDislike = async (req, res) => {
   } catch (error) {
     console.error("Post dislike error:", error);
     return res.status(500).json({ message: "Failed to dislike post" });
+  }
+};
+
+export const postComment = async (req, res) => {
+  try {
+    const userId = req.id;
+    const postId = req.params.id;
+    const { text, parentCommentId } = req.body;
+
+    if (!text) {
+      return res.status(400).json({ message: "Text is required" });
+    }
+
+    const newComment = await Comment.create({
+      text,
+      user: userId,
+      post: postId,
+      parentComment: parentCommentId || null,
+    });
+
+    return res.status(201).json({
+      message: "Comment created successfully",
+      comment: newComment,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to create comment" });
+  }
+};
+
+export const deleteComment = async (req, res) => {
+  const userId = req.id;
+  const commentId = req.params.id;
+
+  try {
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (comment.user !== userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    await Comment.find({ parentComment: commentId }).deleteMany();
+    await comment.delete();
+    return res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete comment" });
   }
 };

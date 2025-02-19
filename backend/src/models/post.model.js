@@ -4,6 +4,12 @@ const { Schema } = mongoose;
 
 const postSchema = new Schema(
   {
+    postType: {
+      type: String,
+      required: true,
+      enum: ["post", "question"],
+      default: "post",
+    },
     text: {
       type: String,
       required: true,
@@ -11,15 +17,16 @@ const postSchema = new Schema(
     imagesUrl: {
       type: [String],
       maxlength: 4,
+      default: [],
     },
     likes: [
       {
-        user: { type: String, ref: "User" },
+        user: { type: String, ref: "User", required: true },
       },
     ],
     dislikes: [
       {
-        user: { type: String, ref: "User" },
+        user: { type: String, ref: "User", required: true },
       },
     ],
     user: {
@@ -30,6 +37,8 @@ const postSchema = new Schema(
   },
   { timestamps: true }
 );
+
+postSchema.index({ user: 1 , createdAt: -1 });
 
 const Post = mongoose.model("Post", postSchema);
 
