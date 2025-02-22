@@ -164,47 +164,57 @@ export const deletePost = async (req, res) => {
 };
 
 export const postLike = async (req, res) => {
-  const postId = req.params.id;
-  const userId = req.id;
-
   try {
-    const user = await Post.findOne({ "$likes.user": userId });
-    if (user) {
-      await Post.findByIdAndUpdate(postId, {
-        $pull: { likes: { user: userId } },
-      });
-      return res.status(400).json({ message: "removed like" });
+    const postId = req.params.id;
+    const userId = req.id;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    const post = await Post.findByIdAndUpdate(postId, {
-      $push: { likes: { user: userId } },
-    });
+    if (post.likes.find((like) => like.user === userId)) {
+      await Post.findByIdAndUpdate(
+        postId,
+        { $pull: { likes: { user: userId } } },
+        { new: true }
+      );
+      return res.status(200).json({ message: "Removed like", post });
+    }
 
-    return res.status(200).json({ message: "liked post", post });
-  } catch (error) {}
+    post.likes.push({ user: userId });
+    await post.save();
+
+    return res.status(200).json({ message: "Liked post", post });
+  } catch (error) {
+    console.error("Post Like Error:", error);
+    return res.status(500).json({ message: "Internal server issue." });
+  }
 };
 
 export const postDislike = async (req, res) => {
-  const postId = req.params.id;
-  const userId = req.id;
-
   try {
-    const user = await Post.findOne({ "$dislikes.user": userId });
-    if (user) {
-      await Post.findByIdAndUpdate(postId, {
-        $pull: { dislikes: { user: userId } },
-      });
-      return res.status(400).json({ message: "removed dislike" });
+    const postId = req.params.id;
+    const userId = req.id;
+
+    const post = await Post.findById(postId);
+
+    if (post.likes.find((like) => like.user === userId)) {
+      await Post.findByIdAndUpdate(
+        postId,
+        { $pull: { dislikes: { user: userId } } },
+        { new: true }
+      );
+      return res.status(200).json({ message: "Removed dislike", post });
     }
 
-    const post = await Post.findByIdAndUpdate(postId, {
-      $push: { dislikes: { user: userId } },
-    });
+    post.dislikes.push({ user: userId });
+    await post.save();
 
-    return res.status(200).json({ message: "disliked post", post });
+    return res.status(200).json({ message: "Disliked post", post });
   } catch (error) {
-    console.error("Post dislike error:", error);
-    return res.status(500).json({ message: "Failed to dislike post" });
+    console.error("Post Dislike Error:", error);
+    return res.status(500).json({ message: "Internal server issue." });
   }
 };
 

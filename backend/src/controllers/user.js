@@ -63,7 +63,14 @@ export const updateProfile = async (req, res) => {
     const avatar = req.file;
     const userId = req.id;
 
-    if (!name || !skills?.length || !bio || !social || !experience?.length || !education?.length) {
+    if (
+      !name ||
+      !skills?.length ||
+      !bio ||
+      !social ||
+      !experience?.length ||
+      !education?.length
+    ) {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
@@ -98,6 +105,10 @@ export const sendConnectionRequest = async (req, res) => {
   const userId = req.id;
   const { receiverId } = req.body;
 
+  if (userId === receiverId) {
+    return res.status(400).json({ message: "Cannot send request to self." });
+  }
+
   try {
     const user = await User.findById(userId);
     const receiver = await User.findById(receiverId);
@@ -107,32 +118,24 @@ export const sendConnectionRequest = async (req, res) => {
     }
 
     const userConnection = user.connections.find(
-      (conn) =>
-        conn.user === receiverId &&
-        (conn.status === "pending" || conn.status === "accepted")
+      (conn) => conn.user === receiverId
     );
-
     const receiverConnection = receiver.connections.find(
-      (conn) =>
-        conn.user === userId &&
-        (conn.status === "requested" || conn.status === "accepted")
+      (conn) => conn.user === userId
     );
 
     if (userConnection || receiverConnection) {
       return res
         .status(400)
-        .json({ message: "Connection request already exists." });
+        .json({ message: "Connection request already sent." });
     }
 
-    user.connections.push({ user: receiverId, status: "pending" });
-    receiver.connections.push({ user: userId, status: "requested" });
+    user.connections.push({ user: receiverId, status: "requested" });
+    receiver.connections.push({ user: userId, status: "pending" });
 
     await user.save();
     await receiver.save();
-
-    return res.status(200).json({ message: "Connection request sent." });
   } catch (error) {
-    console.error("Send Connection Request Error:", error);
     return res.status(500).json({ message: "Internal server issue." });
   }
 };
@@ -174,6 +177,51 @@ export const acceptConnectionRequest = async (req, res) => {
       .json({ message: "Connection request accepted successfully." });
   } catch (error) {
     console.error("Accept Connection Request Error:", error);
+    return res.status(500).json({ message: "Internal server issue." });
+  }
+};
+
+export const rejectConnectionRequest = async (req, res) => {
+  try {
+    const userId = req.id;
+    const { senderId } = req.body;
+
+    const user = await User.findById(userId);
+    const sender = await User.findById(senderId);
+
+    if (!user || !sender) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const userConnection = user.connections.find(
+      (conn) => conn.user === senderId && conn.status === "requested"
+    );
+
+    const senderConnection = sender.connections.find(
+      (conn) => conn.user === userId && conn.status === "pending"
+    );
+
+    if (!userConnection || !senderConnection) {
+      return res
+        .status(400)
+        .json({ message: "No pending connection request found." });
+    }
+
+    user.connections = user.connections.filter(
+      (conn) => conn.user !== senderId
+    );
+    sender.connections = sender.connections.filter(
+      (conn) => conn.user !== userId
+    );
+
+    await user.save();
+    await sender.save();
+
+    return res
+      .status(200)
+      .json({ message: "Connection request rejected successfully." });
+  } catch (error) {
+    console.error("Reject Connection Request Error:", error);
     return res.status(500).json({ message: "Internal server issue." });
   }
 };
