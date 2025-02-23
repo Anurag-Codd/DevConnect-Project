@@ -5,8 +5,7 @@ const Home = () => {
     <>
       <Hero />
 
-      <div className="h-screen bg-blue-500"></div>
-      <div className="h-screen bg-yellow-500"></div>
+      <div className="h-screen bg-gradient-to-b from-[#553b76] to-[#553C76]"></div>
     </>
   );
 };

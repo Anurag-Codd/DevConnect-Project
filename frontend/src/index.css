@@ -4,6 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+* {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* Internet Explorer/Edge */
+  user-select: none;         /* Standard syntax */
+}
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(20 14.3% 4.1%);
