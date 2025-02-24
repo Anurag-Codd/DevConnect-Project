@@ -1,8 +1,6 @@
-import { Link } from "react-router";
 import user from "/User.png";
-import music from "/b9kdms0q.png";
-import hand from "/flxab4t7.png";
 import calc from "/pcop71am.png";
+import { Link } from "react-router";
 import {
   Computer,
   Ellipsis,
