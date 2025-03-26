@@ -5,7 +5,7 @@ export const createAccount = async (req, res) => {
   const { username, email, uid } = req.body;
 
   if (!username || !email || !uid) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(400).json({ error: "fields are required to signup" });
   }
 
   try {
@@ -33,7 +33,7 @@ export const login = async (req, res) => {
   const { email, uid } = req.body;
 
   if (!email || !uid) {
-    return res.status(400).json({ message: "Missing required fileds" });
+    return res.status(400).json({ message: "can't login missing information" });
   }
 
   try {
@@ -78,11 +78,11 @@ export const updateProfile = async (req, res) => {
     const userId = req.id;
 
     if (
-      !tagline ||
-      !bio ||
-      !skills?.length ||
-      !social ||
-      !experience?.length ||
+      !tagline &&
+      !bio &&
+      !skills?.length &&
+      !social &&
+      !experience?.length &&
       !education?.length
     ) {
       return res.status(400).json({ message: "Provide something to update" });
@@ -102,7 +102,15 @@ export const updateProfile = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { tagline, skills, bio, social, experience, education, avatar: avatarUrl },
+      {
+        tagline,
+        skills,
+        bio,
+        social,
+        experience,
+        education,
+        avatar: avatarUrl,
+      },
       { new: true }
     ).select("-password");
 

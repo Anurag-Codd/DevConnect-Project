@@ -57,11 +57,11 @@ const CreatePost = () => {
 
     try {
       const formData = new FormData(e.target);
-      formData.append("type", type)
+      formData.append("type", type);
       if (fileData.file) {
         formData.append("asset", fileData.file);
       }
-    
+
       await dispatch(createPost(formData));
     } catch (error) {
       console.log(error.message || "Failed to create post. Please try again.");
@@ -71,12 +71,20 @@ const CreatePost = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="w-full h-12 rounded-lg border border-gray-300 bg-white flex items-center text-gray-600 text-sm font-medium shadow-sm cursor-pointer hover:bg-gray-100 transition">
-          Create Post, Ask Questions, and Post Collaboration Requests
+        <Button
+          className="border-2 rounded-full border-gray-600 w-full h-12 bg-gray-900 flex items-center justify-center 
+  text-gray-200 text-sm font-medium cursor-pointer transition-colors duration-700 ease-in-out delay-200 
+  hover:bg-gradient-to-l hover:from-gray-900 hover:via-gray-700 hover:to-gray-900"
+        >
+          <p className="truncate">
+            Create Post, Ask Questions, and Post Collaboration Requests
+          </p>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl w-full h-[90vh] overflow-auto">
-        <DialogTitle className="text-center">Create New Post</DialogTitle>
+      <DialogContent className="max-w-4xl w-full max:h-[90vh] overflow-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <DialogTitle className="text-center text-white">
+          Create New Post
+        </DialogTitle>
         <ToggleGroup
           type="single"
           value={type}
@@ -85,19 +93,19 @@ const CreatePost = () => {
         >
           <ToggleGroupItem
             value="post"
-            className="p-0 rounded-md border text-sm font-medium"
+            className="p-0 rounded-md border border-gray-600 text-sm font-medium text-gray-400"
           >
             <NotepadText /> Post
           </ToggleGroupItem>
           <ToggleGroupItem
             value="question"
-            className=" p-0 rounded-md border text-sm font-medium"
+            className=" p-0 rounded-md border border-gray-600 text-sm font-medium text-gray-400"
           >
             <BadgePercent /> Question
           </ToggleGroupItem>
           <ToggleGroupItem
             value="collaboration"
-            className="p-0 rounded-md border text-sm font-medium"
+            className="p-0 rounded-md border border-gray-600 text-sm font-medium text-gray-400"
           >
             <BriefcaseBusiness /> Collaboration
           </ToggleGroupItem>
@@ -105,54 +113,64 @@ const CreatePost = () => {
         <form onSubmit={postAction} className="space-y-6">
           {type === "collaboration" && (
             <div>
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title" className="text-white">
+                Title
+              </Label>
               <input
                 id="title"
                 name="title"
-                className="border p-2 w-full rounded mt-2"
+                className="border p-2 w-full rounded mt-2 text-gray-200"
                 placeholder="Enter a title..."
                 required
               />
             </div>
           )}
           <div>
-            <Label htmlFor="content">Content</Label>
+            <Label htmlFor="content" className="text-white">
+              Content
+            </Label>
             <Textarea
               id="content"
               name="content"
-              placeholder="Write your post (supports Markdown)..."
-              className="h-40 resize-none mt-2"
+              placeholder="Write your post"
+              className="h-40 resize-none mt-2 text-gray-100"
               required
             />
           </div>
           {type === "question" && (
             <div>
-              <Label htmlFor="tags">Tags (comma-separated)</Label>
+              <Label htmlFor="tags" className="text-white">
+                Tags (comma-separated)
+              </Label>
               <input
                 id="tags"
                 name="tags"
-                className="border p-2 w-full rounded mt-2 text-sm font-medium"
+                className="border p-2 w-full rounded mt-2 text-sm font-medium text-gray-200"
                 placeholder="e.g., React, JavaScript, Web Dev"
+                required
               />
             </div>
           )}
           {type === "collaboration" && (
             <div>
-              <Label htmlFor="techStack">Skills Required</Label>
+              <Label htmlFor="techStack" className="text-white">
+                Skills Required
+              </Label>
               <input
                 id="techStack"
                 name="techStack"
-                className="border p-2 w-full rounded mt-2 text-sm font-medium"
+                className="border p-2 w-full rounded mt-2 text-sm font-medium text-gray-200"
                 placeholder="e.g., Node.js, UI/UX, Python"
+                required
               />
             </div>
           )}
           <div>
-            <Label>Upload Images or PDFs</Label>
+            <Label className="text-white">Upload Images or PDFs</Label>
             <div className="grid grid-cols-1 gap-4 mt-2">
               <div className="relative p-2 flex items-center justify-center">
                 {fileData.file ? (
-                  <div className="relative w-full h-full flex items-center justify-center">
+                  <div className="relative w-full h-full flex items-center justify-center border border-dashed rounded-md overflow-hidden">
                     {fileData.previewUrl ? (
                       <>
                         <img
@@ -177,7 +195,7 @@ const CreatePost = () => {
                         <button
                           type="button"
                           onClick={removeFile}
-                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full"
                         >
                           <X size={16} />
                         </button>
@@ -208,7 +226,10 @@ const CreatePost = () => {
                 Please wait
               </Button>
             ) : (
-              <Button type="submit" className="w-full">
+              <Button
+                type="submit"
+                className="w-full text-gray-200 border-2 shadow-md shadow-gray-600 border-gray-900 transition-transform duration-300 ease-in-out active:scale-98"
+              >
                 Create {type.charAt(0).toUpperCase() + type.slice(1)}
               </Button>
             )}

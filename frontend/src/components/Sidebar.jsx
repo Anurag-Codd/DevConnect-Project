@@ -8,7 +8,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="relative bg-white shadow-md rounded-lg h-96 hidden lg:flex flex-col items-center pb-6">
+      <div className="relative bg-gray-800 shadow-md shadow-gray-600 rounded-lg h-96 hidden lg:flex flex-col items-center pb-6">
         <div className="relative w-full h-20 rounded-t-lg overflow-hidden">
         <img src={banner} alt="banner" className="w-full h-20 object-cover" />
         </div>
@@ -19,11 +19,11 @@ const Sidebar = () => {
           alt="User Avatar"
           width={80}
           height={80}
-          className="rounded-full border-2 border-white shadow-lg"
+          className="rounded-full shadow-lg"
         />
 
-          <h2 className="text-lg font-semibold mt-2">{user?.username?.charAt(0).toUpperCase() + user?.username?.slice(1)|| "user"}</h2>
-          <p className="text-gray-500 text-xs px-4 text-center">
+          <h2 className="text-lg font-semibold mt-2 text-yellow-400">{user?.username?.charAt(0).toUpperCase() + user?.username?.slice(1)|| "user"}</h2>
+          <p className="text-gray-200 text-xs px-4 text-center">
             {user?.tagline || "MERN Stack Developer | Full Stack"}
           </p>
         </div>

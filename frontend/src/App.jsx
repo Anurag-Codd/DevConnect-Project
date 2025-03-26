@@ -11,6 +11,8 @@ import axiosInstance from "./lib/axiosInstance";
 import { Unplug } from "lucide-react";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
+import ProjectPage from "./pages/ProjectPage";
 
 const RouteProtection = () => {
   const location = useLocation();
@@ -72,6 +74,8 @@ const App = () => {
         </Route>
         <Route element={<RouteProtection />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/projects" element={<ProjectPage />} />
         </Route>
       </Route>
     </Routes>

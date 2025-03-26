@@ -4,15 +4,6 @@ const { Schema } = mongoose;
 
 const taskSchema = new Schema(
   {
-    projectId: {
-      type: Schema.Types.ObjectId,
-      ref: "Project",
-      required: true,
-    },
-    title: {
-      type: String,
-      required: true,
-    },
     Content: { type: "String" },
     assignedTo: {
       type: String,
@@ -20,7 +11,7 @@ const taskSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "InProgress", "OnHold", "Done"],
+      enum: ["pending", "on-hold", "in-progress", "completed"],
       default: "pending",
     },
   },

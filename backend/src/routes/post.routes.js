@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.get("/all-post",authMiddlware, allPost);
 router.post("/create-post", upload.single("asset"),authMiddlware, createPost);
-router.delete("/delete-post",authMiddlware, deletePost);
+router.delete("/delete-post/:id",authMiddlware, deletePost);
 router.get("/like/:id",authMiddlware, addLike);
 router.get("/dislike/:id",authMiddlware, addDislike);
 router.post("/add-comment",authMiddlware, addComment);

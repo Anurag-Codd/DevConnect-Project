@@ -9,9 +9,14 @@ cloudinary.config({
 });
 
 export const uploader = async (file) => {
+  const isPDF = file.mimetype === "application/pdf";
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { resource_type: "auto", folder: "DevConnect" },
+      {
+        resource_type: isPDF ? "raw" : "image",
+        format: isPDF ? "pdf" : undefined,
+        folder: "DevConnect",
+      },
       (error, result) => {
         if (error) reject(error);
         else resolve(result);

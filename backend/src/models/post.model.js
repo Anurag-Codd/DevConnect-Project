@@ -23,10 +23,8 @@ const postSchema = new Schema(
     ],
     dislikes: [
       {
-        user: {
           type: String,
           ref: "User",
-        },
       },
     ],
     comments: [

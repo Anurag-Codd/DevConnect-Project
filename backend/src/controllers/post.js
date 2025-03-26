@@ -5,6 +5,7 @@ import Comment from "../models/comment.model.js";
 import Question from "../models/question.model.js";
 import Collaboration from "../models/collaboration.model.js";
 import User from "../models/user.model.js";
+import { io } from "../lib/socket.js";
 
 export const allPost = async (req, res) => {
   const userId = req.id;
@@ -33,7 +34,7 @@ export const allPost = async (req, res) => {
     })
       .populate("userId", "username tagline")
       .lean();
-      
+
     return res.status(200).json({
       posts: Posts,
       questions: Questions,
@@ -70,13 +71,17 @@ export const createPost = async (req, res) => {
     }
 
     if (type === "question") {
-      postData = { ...postData, title, tags: tags || [] };
+      postData = { ...postData, title, tags: tags.split(",").map((tag)=>tag.trim()) || [] };
       const question = await Question.create(postData);
       return res.status(201).json({ success: "Question created", question });
     }
 
     if (type === "collaboration") {
-      postData = { ...postData, title, techStack: techStack || [] };
+      postData = {
+        ...postData,
+        title,
+        techStack: techStack.split(",").map((tech)=>tech.trim()) || [],
+      };
       const collaboration = await Collaboration.create(postData);
       return res
         .status(201)
@@ -114,7 +119,9 @@ export const deletePost = async (req, res) => {
     await Comment.find({ post: postId }).deleteMany();
     await post.delete();
 
-    return res.status(200).json({ message: "Post deleted successfully" });
+    return res
+      .status(200)
+      .json({ message: "Post deleted successfully", post: post._id });
   } catch (error) {
     return res.status(500).json({ message: "Failed to delete post" });
   }
@@ -133,17 +140,35 @@ export const addLike = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    const likeIndex = post.likes.findIndex((like) => like.user === userId);
+    const likeIndex = post.likes.findIndex((like) => like === userId);
+    const dislikeIndex = post.dislikes.findIndex(
+      (dislike) => dislike === userId
+    );
     if (likeIndex !== -1) {
-      post.likes.slice(likeIndex, 1);
+      post.likes.splice(likeIndex, 1);
       post.save();
-      return res.status(200).json({ message: "Removed like", post });
+
+      io.emit("updateLike", { postId: post._id, likes: post.likes });
+
+      return res.status(200).json({
+        message: "Removed like",
+        data: [{ postId: post._id, likes: post.likes }],
+      });
+    }
+    if (dislikeIndex !== -1) {
+      post.dislikes.splice(dislikeIndex, 1);
+      post.save();
     }
 
-    post.likes.push({ user: userId });
+    post.likes.push(userId);
     await post.save();
 
-    return res.status(200).json({ message: "Liked post", post });
+    io.emit("updateLike", { postId: post._id, likes: post.likes });
+
+    return res.status(200).json({
+      message: "Liked post",
+      data: [{ postId: post._id, likes: post.likes }],
+    });
   } catch (error) {
     console.error("Post Like Error:", error);
     return res.status(500).json({ message: "Internal server issue." });
@@ -155,19 +180,43 @@ export const addDislike = async (req, res) => {
     const postId = req.params.id;
     const userId = req.id;
 
-    const post = await Post.findById(postId);
-
-    const dislikeIndex = post.likes.findIndex((like) => like.user === userId);
-    if (dislikeIndex !== -1) {
-      post.dislikes.slice(dislikeIndex, 1);
-      post.save();
-      return res.status(200).json({ message: "Removed dislike", post });
+    const post =
+      (await Post.findById(postId)) ||
+      (await Question.findById(postId)) ||
+      (await Collaboration.findById(postId));
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    post.dislikes.push({ user: userId });
+    const dislikeIndex = post.dislikes.findIndex(
+      (dislike) => dislike === userId
+    );
+    const likeIndex = post.likes.findIndex((like) => like === userId);
+    if (dislikeIndex !== -1) {
+      post.dislikes.splice(dislikeIndex, 1);
+      post.save();
+
+      io.emit("updateDislike", { postId: post._id, dislikes: post.dislikes });
+      return res.status(200).json({
+        message: "Removed dislike",
+        data: [{ postId: post._id, dislikes: post.dislikes }],
+      });
+    }
+
+    if (likeIndex !== -1) {
+      post.likes.splice(likeIndex, 1);
+      post.save();
+    }
+
+    post.dislikes.push(userId);
     await post.save();
 
-    return res.status(200).json({ message: "Disliked post", post });
+    io.emit("updateDislike", { postId: post._id, dislikes: post.dislikes });
+
+    return res.status(200).json({
+      message: "Disliked post",
+      data: [{ postId: post._id, dislikes: post.dislikes }],
+    });
   } catch (error) {
     console.error("Post Dislike Error:", error);
     return res.status(500).json({ message: "Internal server issue." });

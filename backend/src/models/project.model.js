@@ -4,9 +4,10 @@ const { Schema } = mongoose;
 
 const projectSchema = new Schema(
   {
-    owner: {
+    admin: {
       type: String,
       ref: "User",
+      required: true,
     },
     title: {
       type: String,
@@ -17,28 +18,28 @@ const projectSchema = new Schema(
       required: true,
     },
     techStack: {
-      Skills: [String],
+      type: [String],
       required: true,
     },
     githubRepo: {
       type: String,
       match: [/^https?:\/\//, "Invalid URL"],
     },
-    collaborators: [
+    members: [
       {
         type: String,
         ref: "User",
       },
     ],
-    taskId: [
+    tasks: [
       {
         type: Schema.Types.ObjectId,
       },
     ],
     status: {
       type: String,
-      enum: ["ongoing", "completed", "onhold", "abandoned"],
-      default: "ongoing",
+      enum: ["pending", "on-hold", "abandoned", "in-progress", "completed"],
+      default: "pending",
     },
   },
   { timestamps: true }

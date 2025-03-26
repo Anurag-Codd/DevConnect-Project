@@ -34,7 +34,8 @@ const collaborationSchema = new Schema(
     ],
     dislikes: [
       {
-        user: { type: String, ref: "User" },
+        type: String,
+        ref: "User",
       },
     ],
     comments: [
